@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>공용도서관 메인화면</title>
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+
+
 
     <!-- firebase 라이브러리 CDN 링크로 가져오기 -->
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
@@ -24,6 +27,13 @@
 
         firebase.initializeApp(firebaseConfig);
     </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+        integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/x2js/1.2.0/xml2json.min.js"
+        integrity="sha512-HX+/SvM7094YZEKOCtG9EyjRYvK8dKlFhdYAnVCGNxMkA59BZNSZTZrqdDlLXp0O6/NjDb1uKnmutUeuzHb3iQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <style>
         * {
@@ -152,7 +162,7 @@
             height: 30%;
         }
 
-        .book-explain{
+        .book-explain {
             height: 50px;
         }
 
@@ -169,6 +179,100 @@
 </head>
 
 <body>
+
+    <script>
+        let v_array = [];
+        /* Javascript 샘플 코드 */
+
+        var xhr = new XMLHttpRequest();
+        var url = 'http://api.data.go.kr/openapi/tn_pubr_public_lbrry_api'; /*URL*/
+        var queryParams = '?' + encodeURIComponent('serviceKey') + '=' + 'uZ5XFDjbvsT9RK4VhSB8IpkdLBMAcnft1HKYZxAHBagFSHBfsBCyRUxqQKlUUYexiXTwdiBFjwpe0Q2TPc72sw%3D%3D'; /*Service Key*/
+        queryParams += '&' + encodeURIComponent('pageNo') + '=' + encodeURIComponent('0'); /**/
+        queryParams += '&' + encodeURIComponent('numOfRows') + '=' + encodeURIComponent('3000'); /**/
+        queryParams += '&' + encodeURIComponent('type') + '=' + encodeURIComponent('xml'); /**/
+        xhr.open('GET', url + queryParams);
+
+        xhr.onload = function () {
+            console.log(xhr)
+            console.log(xhr.response)
+
+            let v_x2js = new X2JS();
+            console.log(v_x2js)
+
+            v_json = v_x2js.xml_str2json(xhr.response)
+            console.log(v_json)
+            console.log(v_json['response'])
+            console.log(v_json['response']['body'])
+            console.log(v_json['response']['body']['items'])
+            console.log(v_json['response']['body']['items']['item'])
+            console.log(v_json['response']['body']['items']['item']['0'])
+
+            $.ajax({
+                url: url + queryParams,
+                method: 'GET',
+                success: function (response) {
+
+                    // let v_x2js = new X2JS();
+
+
+                    v_array.push(v_json['response']['body']['items']);
+                    localStorage.setItem('libList', JSON.stringify(v_array));
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error('AJAX 요청 실패:', textStatus, errorThrown);
+                }
+            });
+
+        }
+
+        xhr.send();
+    </script>
+
+    <script>
+        let pageNo = 1;
+        let v_liBarray = [];
+
+        /* Javascript 샘플 코드 */
+        var xhr = new XMLHttpRequest();
+        var url = 'http://apis.data.go.kr/6310000/ulsanbooulsanbooksks/getUlsanbooksList'; /*URL*/
+        var queryParams = '?' + encodeURIComponent('serviceKey') + '=' + 'uZ5XFDjbvsT9RK4VhSB8IpkdLBMAcnft1HKYZxAHBagFSHBfsBCyRUxqQKlUUYexiXTwdiBFjwpe0Q2TPc72sw=='; /*Service Key*/
+        queryParams += '&' + encodeURIComponent('pageNo') + '=' + pageNo; /**/
+        queryParams += '&' + encodeURIComponent('numOfRows') + '=' + 3000; /**/
+        xhr.open('GET', url + queryParams);
+        console.log(url + queryParams);
+
+        xhr.onload = function () {
+            console.log(xhr)
+            console.log(xhr.response)
+
+            let v_x2js = new X2JS();
+            console.log(v_x2js)
+
+            v_json = v_x2js.xml_str2json(xhr.response)
+            console.log(v_json)
+
+            $.ajax({
+                url: url + queryParams,
+                method: 'GET',
+                success: function (response) {
+
+                    console.log(v_json['rfcOpenApi']['body']['data']['list'])
+                    console.log(v_json)
+
+                    v_liBarray.push(v_json['rfcOpenApi']['body']['data']);
+                    localStorage.setItem('bookList', JSON.stringify(v_liBarray));
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error('AJAX 요청 실패:', textStatus, errorThrown);
+                }
+            });
+        }
+
+        xhr.send();
+    </script>
+
     <div class="container">
         <div class="explain-box">
             <div class="homep">
@@ -228,7 +332,7 @@
                     <span>닉네임: </span>
                 </div>
                 <div>
-                    <span>내용:     </span>
+                    <span>내용: </span>
                 </div>
             </div>
         </div>
@@ -246,7 +350,7 @@
 
             v_goLogin.innerHTML = v_login['memNickNm'] + ' 님';
 
-            document.getElementById('goLogin').addEventListener('click', ()=>{
+            document.getElementById('goLogin').addEventListener('click', () => {
                 v_goLogin.innerHTML = "로그인"
                 v_goLogin.href = "./로그인.html"
 
